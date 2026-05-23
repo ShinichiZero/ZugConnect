@@ -1,0 +1,10 @@
+{
+  "name": "ZugConnect",
+  "short_name": "ZugConnect",
+  "description": "Unofficial German transit assistant",
+  "start_url": "/ZugConnect/",
+  "scope": "/ZugConnect/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a0a0a"
+}

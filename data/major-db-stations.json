@@ -1,0 +1,82 @@
+[
+  {
+    "id": "at-Railway-Current-Reference-Data-2026_de:11000:900003200:1:50",
+    "evaId": "8011160",
+    "name": "Berlin Hauptbahnhof",
+    "aliases": ["Berlin Hbf"],
+    "lat": 52.524952,
+    "lon": 13.368881
+  },
+  {
+    "id": "at-Railway-Current-Reference-Data-2026_de:02000:10950:11:1",
+    "evaId": "8002549",
+    "name": "Hamburg Hauptbahnhof",
+    "aliases": ["Hamburg Hbf"],
+    "lat": 53.552475,
+    "lon": 10.008095
+  },
+  {
+    "id": "it-trenitalia_IT::StopPlace:railTRENITALIA:800020347",
+    "evaId": "8000261",
+    "name": "Muenchen Hauptbahnhof",
+    "aliases": ["Muenchen Hbf", "Munich Hbf", "München Hbf", "München Hauptbahnhof"],
+    "lat": 48.13988,
+    "lon": 11.557491
+  },
+  {
+    "id": "de-VBN_490008000105",
+    "evaId": "8000105",
+    "name": "Frankfurt(Main) Hbf",
+    "aliases": ["Frankfurt Main Hbf", "Frankfurt Hauptbahnhof"],
+    "lat": 50.105576,
+    "lon": 8.662652
+  },
+  {
+    "id": "at-Railway-Current-Reference-Data-2026_de:05315:11201:7:72",
+    "evaId": "8000207",
+    "name": "Koeln Hauptbahnhof",
+    "aliases": ["Koeln Hbf", "Köln Hbf", "Köln Hauptbahnhof", "Cologne Hbf"],
+    "lat": 50.943134,
+    "lon": 6.95809
+  },
+  {
+    "id": "at-Railway-Current-Reference-Data-2026_de:05111:18235:90:4",
+    "evaId": "8000085",
+    "name": "Duesseldorf Hauptbahnhof",
+    "aliases": ["Duesseldorf Hbf", "Düsseldorf Hbf", "Düsseldorf Hauptbahnhof"],
+    "lat": 51.220226,
+    "lon": 6.793599
+  },
+  {
+    "id": "de-DELFI_de:03241:31",
+    "evaId": "8000152",
+    "name": "Hannover Hauptbahnhof",
+    "aliases": ["Hannover Hbf", "Hanover Hbf"],
+    "lat": 52.376762,
+    "lon": 9.741021
+  },
+  {
+    "id": "fr-horaires-sncf_StopArea:OCE80290346",
+    "evaId": "8000096",
+    "name": "Stuttgart Hbf",
+    "aliases": ["Stuttgart Hauptbahnhof"],
+    "lat": 48.784748,
+    "lon": 9.183217
+  },
+  {
+    "id": "de-VBB_de:14713:8010205",
+    "evaId": "8010205",
+    "name": "Leipzig Hauptbahnhof",
+    "aliases": ["Leipzig Hbf"],
+    "lat": 51.345474,
+    "lon": 12.382064
+  },
+  {
+    "id": "at-Railway-Current-Reference-Data-2026_de:05913:131:90:10",
+    "evaId": "8000080",
+    "name": "Dortmund Hauptbahnhof",
+    "aliases": ["Dortmund Hbf"],
+    "lat": 51.517723,
+    "lon": 7.458775
+  }
+]
