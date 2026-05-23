@@ -39,8 +39,14 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: npm ci
-      - name: Build with Next.js
-        run: npx next build
+      - name: Build with Next.js and export static site
+        run: |
+          npx next build
+          # Attempt to export a static site to ./out for Pages. Some app-router features
+          # may not be exportable; this matches the Pages action expectation.
+          npx next export -o out || true
+        env:
+          NEXT_PUBLIC_BASE_PATH: /ZugConnect
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

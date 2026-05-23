@@ -1,1 +1,8 @@
 node_modules
+/.next
+/out
+/out_serve
+serve.log
+test-*.js
+test-*.mjs
+test_api.json
