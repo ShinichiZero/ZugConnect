@@ -21,8 +21,56 @@ body {
   touch-action: manipulation;
 }
 
+/* Skip link: visible when focused */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.skip-link:focus,
+.skip-link:not(.sr-only) {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  z-index: 60;
+}
+
+/* Strong focus styles for keyboard users */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid rgba(59,130,246,0.9);
+  outline-offset: 2px;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 /* Base utility for tap targets */
 .tap-target {
   min-height: 48px;
   min-width: 48px;
+}
+
+/* Make interactive areas slightly larger for easier targeting */
+.tap-target > * {
+  pointer-events: none;
 }

@@ -2,76 +2,163 @@ export interface DBDeparture {
   tripId: string;
   direction: string;
   when: string;
+  plannedWhen?: string;
   delay: number | null;
   line: {
     name: string;
+    longName?: string;
+    product?: string;
   };
+  operator?: string;
+  platform?: string;
+  plannedPlatform?: string;
+  isCancelled?: boolean;
   stopovers?: {
     stop: { name: string };
     departure: string;
+    plannedDeparture?: string;
+    platform?: string;
+    plannedPlatform?: string;
   }[];
 }
 
-export async function fetchDepartures(stationId: string): Promise<{ departures: DBDeparture[], isOffline: boolean }> {
-  try {
-    // According to the prompt context, we can use 
-    // Transitous, GTFS feeds, or motis APIs, but to stay compatible
-    // with DB Navigator data directly in a purely frontend web app (Github Pages = STATIC),
-    // hafas-client and db-vendo-client fail because of CORS / fetch blocks / browser unsupported protocols like `net`.
-    
-    // As suggested by the prompt, for purely browser compatibility where db.transport.rest is down,
-    // the only truly robust, client side accessible data without a proxy server is either GTFS from Transitous,
-    // or routing it through an API proxy if possible.
-    
-    // We will attempt to fetch from Motis API (transitous) if possible, but motis uses websockets/POST usually.
-    // Let's implement a fallback API utilizing an alternative public endpoints if available, otherwise graceful degradation.
-    
-    const res = await fetch(`https://europe.motis-project.de/api/stopPlace/v1/departures/${stationId}`, {
-      // Trying something new based on common patterns
-    }).catch(() => null);
+interface TransitousPlace {
+  name?: string;
+  departure?: string;
+  scheduledDeparture?: string;
+  arrival?: string;
+  scheduledArrival?: string;
+  track?: string;
+  scheduledTrack?: string;
+}
 
-    if (!res || !res.ok) {
-       throw new Error('API not available directly from browser CORS');
-    }
-    const data = await res.json();
-    return { departures: data, isOffline: false };
-  } catch (error) {
-    console.error("Fetch failed, using mock data:", error);
-    
-    const STATIONS = [
-      { id: "8011160", name: "Berlin Hbf" },
-      { id: "8002549", name: "Hamburg Hbf" },
-      { id: "8000261", name: "München Hbf" }
-    ];
-    
-    return {
-      departures: [
-        {
-          tripId: `mock-1-${stationId}`,
-          direction: stationId === "8002549" ? "Hannover Hbf" : "Hamburg Hbf",
-          when: new Date(Date.now() + 5 * 60000).toISOString(),
-          delay: 10,
-          line: { name: "ICE 100" },
-          stopovers: [
-            { stop: { name: STATIONS.find(s => s.id === stationId)?.name || "Origin" }, departure: new Date(Date.now() + 5 * 60000).toISOString() },
-            { stop: { name: "Intermediate Station A" }, departure: new Date(Date.now() + 15 * 60000).toISOString() },
-            { stop: { name: stationId === "8002549" ? "Hannover Hbf" : "Hamburg Hbf" }, departure: new Date(Date.now() + 105 * 60000).toISOString() }
-          ]
-        },
-        {
-          tripId: `mock-2-${stationId}`,
-          direction: stationId === "8000261" ? "Stuttgart Hbf" : "München Hbf",
-          when: new Date(Date.now() + 12 * 60000).toISOString(),
-          delay: null,
-          line: { name: "ICE 200" },
-          stopovers: [
-            { stop: { name: STATIONS.find(s => s.id === stationId)?.name || "Origin" }, departure: new Date(Date.now() + 12 * 60000).toISOString() },
-            { stop: { name: "Intermediate Station B" }, departure: new Date(Date.now() + 72 * 60000).toISOString() },
-            { stop: { name: stationId === "8000261" ? "Stuttgart Hbf" : "München Hbf" }, departure: new Date(Date.now() + 200 * 60000).toISOString() }
-          ]
-        }
-      ] as DBDeparture[],
-      isOffline: true
-    };
+interface TransitousStopTime {
+  place: TransitousPlace;
+  headsign?: string;
+  tripId?: string;
+  routeShortName?: string;
+  displayName?: string;
+  tripShortName?: string;
+  routeLongName?: string;
+  mode?: string;
+  agencyName?: string;
+  realTime?: boolean;
+  cancelled?: boolean;
+  tripCancelled?: boolean;
+  nextStops?: TransitousPlace[];
+}
+
+interface TransitousStopTimesResponse {
+  stopTimes: TransitousStopTime[];
+}
+
+const TRANSITOUS_API_BASE = "https://api.transitous.org/api";
+const TRAIN_MODES = [
+  "HIGHSPEED_RAIL",
+  "LONG_DISTANCE",
+  "NIGHT_RAIL",
+  "REGIONAL_RAIL",
+  "SUBURBAN",
+];
+
+function eventTime(place: TransitousPlace): string | undefined {
+  return (
+    place.departure ||
+    place.scheduledDeparture ||
+    place.arrival ||
+    place.scheduledArrival
+  );
+}
+
+function delaySeconds(place: TransitousPlace): number | null {
+  const actual = place.departure || place.arrival;
+  const scheduled = place.scheduledDeparture || place.scheduledArrival;
+  if (!actual || !scheduled) return null;
+  const diff = Math.round((Date.parse(actual) - Date.parse(scheduled)) / 1000);
+  return Number.isFinite(diff) && diff !== 0 ? diff : null;
+}
+
+function toDeparture(
+  stopTime: TransitousStopTime,
+  fallbackIndex: number
+): DBDeparture | null {
+  const when = eventTime(stopTime.place);
+  if (!when) return null;
+
+  const plannedWhen =
+    stopTime.place.scheduledDeparture || stopTime.place.scheduledArrival;
+
+  const stopovers = stopTime.nextStops
+    ?.map((stop) => {
+      const departure = eventTime(stop);
+      if (!departure) return null;
+      return {
+        stop: { name: stop.name || "Unknown station" },
+        departure,
+        plannedDeparture: stop.scheduledDeparture || stop.scheduledArrival,
+        platform: stop.track || stop.scheduledTrack,
+        plannedPlatform: stop.scheduledTrack,
+      };
+    })
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
+
+  return {
+    tripId:
+      stopTime.tripId ||
+      `${stopTime.routeShortName || "trip"}-${when}-${fallbackIndex}`,
+    direction:
+      stopTime.headsign ||
+      stopTime.nextStops?.at(-1)?.name ||
+      "Unknown destination",
+    when,
+    plannedWhen,
+    delay: delaySeconds(stopTime.place),
+    line: {
+      name:
+        stopTime.displayName ||
+        stopTime.routeShortName ||
+        stopTime.tripShortName ||
+        "Train",
+      longName: stopTime.routeLongName,
+      product: stopTime.mode,
+    },
+    operator: stopTime.agencyName,
+    platform: stopTime.place.track || stopTime.place.scheduledTrack,
+    plannedPlatform: stopTime.place.scheduledTrack,
+    isCancelled: stopTime.cancelled || stopTime.tripCancelled,
+    stopovers,
+  };
+}
+
+export async function fetchDepartures(
+  stationId: string
+): Promise<{ departures: DBDeparture[]; isOffline: boolean }> {
+  const params = new URLSearchParams({
+    stopId: stationId,
+    n: "150",
+    mode: TRAIN_MODES.join(","),
+    fetchStops: "true",
+    withAlerts: "false",
+    language: "en",
+  });
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 10_000);
+
+  try {
+    const response = await fetch(
+      `${TRANSITOUS_API_BASE}/v5/stoptimes?${params}`,
+      { signal: controller.signal }
+    );
+    if (!response.ok) throw new Error(`Transitous returned ${response.status}`);
+
+    const data = (await response.json()) as TransitousStopTimesResponse;
+    const departures = data.stopTimes
+      .map((st, i) => toDeparture(st, i))
+      .filter((d): d is DBDeparture => Boolean(d));
+
+    return { departures, isOffline: false };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
