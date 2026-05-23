@@ -282,6 +282,33 @@ export default function Home() {
             );
           })}
         </div>
+
+        <section
+          aria-labelledby="about-zugconnect"
+          className="mt-8 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4"
+        >
+          <h2 id="about-zugconnect" className="text-lg font-semibold">
+            About ZugConnect
+          </h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            ZugConnect is an unofficial, open source assistant for train departures. It is
+            provided as-is and is not affiliated with Deutsche Bahn.
+          </p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            Data is provided by the Transitous API. Use the guide button for step-by-step
+            planning help if you need extra support.
+          </p>
+          <div className="mt-3">
+            <a
+              href="https://github.com/ShinichiZero/ZugConnect"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-blue-600 hover:underline"
+            >
+              View the source on GitHub
+            </a>
+          </div>
+        </section>
       </div>
     </div>
   );
